@@ -1,10 +1,12 @@
 from rest_framework.serializers import ModelSerializer
-from .models import CustomUser, Review, News, Award, Movie, Industry, Genre, StreamingPlatform
+from .models import CustomUser, Comment, Review, News, Award, Movie, Industry, Genre, StreamingPlatform
 
-class CustomUserSerializer(ModelSerializer):
+
+
+class CommentSerializer(ModelSerializer):
     class Meta:
-        model = CustomUser
-        fields = ['id', 'email_address', 'username', 'gender', 'country', 'is_active', 'is_staff', 'is_superuser']
+        model = Comment
+        fields = ['id', 'user', 'content_type', 'object_id', 'content', 'timestamp']
 
 
 class ReviewSerializer(ModelSerializer):
@@ -41,3 +43,15 @@ class StreamingPlatformSerializer(ModelSerializer):
     class Meta:
         model = StreamingPlatform
         fields = ['id', 'name']
+
+class CustomUserSerializer(ModelSerializer):
+    liked_review = ReviewSerializer(many=True, read_only=True)
+    saved_review = ReviewSerializer(many=True, read_only=True)
+    liked_new = NewsSerializer(many=True, read_only=True)
+    saved_new = NewsSerializer(many=True, read_only=True)
+    liked_awards = AwardSerializer(many=True, read_only=True)
+    saved_awards = AwardSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'email_address', 'username', 'gender', 'country', 'is_active', 'is_staff', 'is_superuser', 'liked_review', 'saved_review', 'liked_new', 'saved_new', 'liked_awards', 'saved_awards']

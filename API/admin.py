@@ -9,14 +9,14 @@ from django.contrib.auth.admin import UserAdmin
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    # Specify the model
+
     model = CustomUser
     
-    # Fieldsets for viewing and editing users
     fieldsets = (
         (None, {"fields": ("email_address", "password")}),
         ("Personal Info", {"fields": ("username", "country", "gender")}),
         ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
+        ("User Interactions", {'fields': ('liked_reviews', 'saved_reviews', 'liked_new', 'saved_new', 'liked_awards', 'saved_awards')}),
         ("Important dates", {"fields": ("last_login",)}),
     )
     add_fieldsets = (
@@ -29,7 +29,13 @@ class CustomUserAdmin(UserAdmin):
     list_filter = ("is_staff", "is_superuser", "is_active",)
     search_fields = ("email_address", "username")
     ordering = ("email_address",)
-    readonly_fields = ("email_address", "username")
+    readonly_fields = ("last_login", "date_joined")
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            # New user
+            obj.set_password(obj.password)
+        super().save_model(request, obj, form, change)
 
     def has_add_permission(self, request: HttpRequest) -> bool:
         if request.user.is_superuser == True:
@@ -59,6 +65,7 @@ class CustomUserAdmin(UserAdmin):
     def current_user(self, request):
         current_user = get_object_or_404(CustomUser, email_address=request)
         return current_user
+    
     
 
 @admin.register(Review)
