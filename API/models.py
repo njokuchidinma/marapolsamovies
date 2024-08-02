@@ -78,7 +78,7 @@ class Comment(models.Model):
 
 class Review(models.Model):
     title = models.CharField(max_length=255)
-    content_type = models.CharField(max_length=30, choices=CONTENT)
+    content_type = models.CharField(max_length=30, choices=CONTENT) #add genre & industry
     streaming_platform = models.CharField(max_length=255)
     cast = models.CharField(max_length=255)
     director = models.CharField(max_length=255)
@@ -88,7 +88,7 @@ class Review(models.Model):
     storytelling = models.TextField(blank=True, null=True)
     verdict = models.TextField(blank=True, null=True)
     thumbnail = models.ImageField(upload_to='thumbnails/')
-    publisher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    publisher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE) #add total rating
     timestamp = models.DateTimeField(auto_now_add=True)
     liked_by_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_reviews_items', blank=True)
     saved_by_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='saved_reviews_items', blank=True)
