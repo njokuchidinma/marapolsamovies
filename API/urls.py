@@ -1,6 +1,11 @@
 from django.urls import path
-from .views import ToggleLike, ToggleSave, AddComment, UserDashboard, ReviewDataHandler, UserProfile, UserRegistration, CommentDataHandler, MovieDataHandler, NewsDataHandler, AwardDataHandler, GenreDataHandler, IndustryDataHandler, StreamingPlatformDataHandler
+from .views import ToggleLike, ToggleSave, AddComment, AllUsersView, UserDashboard, ReviewDataHandler, UserProfile, UserRegistration, CommentDataHandler, MovieDataHandler, NewsDataHandler, AwardDataHandler, GenreDataHandler, IndustryDataHandler, StreamingPlatformDataHandler
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+
+
+
+
 
 urlpatterns = [
     path('toggle-like/<str:model_name>/<int:object_id>/', ToggleLike.as_view(), name='toggle-like'),
@@ -9,6 +14,7 @@ urlpatterns = [
     path('user-dashboard/', UserDashboard.as_view(), name='user-dashboard'),
     path('reviews/', ReviewDataHandler.as_view(), name='review_data_handler'),
     path('reviews/<int:pk>/', ReviewDataHandler.as_view(), name='review_detail'),
+    path('users/', AllUsersView.as_view(), name='all-users'),
     path('user/profile/', UserProfile.as_view(), name='user_profile'),
     path('user/register/', UserRegistration.as_view(), name='user-registration'),
     path('comments/', CommentDataHandler.as_view(), name='comment_data_handler'),

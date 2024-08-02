@@ -25,6 +25,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     password = models.CharField(max_length=255)
     gender = models.CharField(max_length=13, choices=GENDER, default='FEMALE')
     country = models.CharField(max_length=255, blank=True)
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
     liked_reviews = models.ManyToManyField('Review', related_name='users_who_liked', blank=True)
     saved_reviews = models.ManyToManyField('Review', related_name='users_who_saved', blank=True)
     liked_new = models.ManyToManyField('News', related_name='users_who_liked', blank=True)
@@ -76,24 +77,6 @@ class Comment(models.Model):
     def __str__(self):
         return f"Comment by {self.user.username} on {self.content_object}"
 
-class Review(models.Model):
-    title = models.CharField(max_length=255)
-    content_type = models.CharField(max_length=30, choices=CONTENT) #add genre & industry
-    streaming_platform = models.CharField(max_length=255)
-    cast = models.CharField(max_length=255)
-    director = models.CharField(max_length=255)
-    plot = models.TextField(blank=True, null=True)
-    acting = models.TextField(blank=True, null=True)
-    characters = models.TextField(blank=True, null=True)
-    storytelling = models.TextField(blank=True, null=True)
-    verdict = models.TextField(blank=True, null=True)
-    thumbnail = models.ImageField(upload_to='thumbnails/')
-    publisher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE) #add total rating
-    timestamp = models.DateTimeField(auto_now_add=True)
-    liked_by_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_reviews_items', blank=True)
-    saved_by_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='saved_reviews_items', blank=True)
-
-
 class News(models.Model):
     title = models.CharField(max_length=255)
     image = models.ImageField(upload_to='news_images/')
@@ -120,6 +103,25 @@ class Genre(models.Model):
 
 class StreamingPlatform(models.Model):
     name = models.CharField(max_length=255)
+
+class Review(models.Model):
+    title = models.CharField(max_length=255)
+    content_type = models.CharField(max_length=30, choices=CONTENT) 
+    genre = models.ForeignKey(Genre, on_delete=models.CASCADE, null=True)
+    industry = models.ForeignKey(Industry, on_delete=models.CASCADE, null=True)
+    streaming_platform = models.ForeignKey(StreamingPlatform, on_delete=models.CASCADE, null=True)
+    cast = models.CharField(max_length=255)
+    director = models.CharField(max_length=255)
+    plot = models.TextField(blank=True, null=True)
+    acting = models.TextField(blank=True, null=True)
+    characters = models.TextField(blank=True, null=True)
+    storytelling = models.TextField(blank=True, null=True)
+    verdict = models.TextField(blank=True, null=True)
+    thumbnail = models.ImageField(upload_to='thumbnails/')
+    publisher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE) 
+    timestamp = models.DateTimeField(auto_now_add=True)
+    liked_by_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_reviews_items', blank=True)
+    saved_by_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='saved_reviews_items', blank=True)
 
 class Movie(models.Model):
     title = models.CharField(max_length=255)

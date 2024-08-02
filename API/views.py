@@ -5,6 +5,7 @@ from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Review, CustomUser, Comment, Movie, News, Award, Genre, Industry, StreamingPlatform
+from .permissions import IsAdminOrStaff
 from .serializers import ReviewSerializer, CustomUserSerializer, CommentSerializer, MovieSerializer, NewsSerializer, AwardSerializer, GenreSerializer, IndustrySerializer, StreamingPlatformSerializer
 
 
@@ -140,7 +141,17 @@ class UserProfile(APIView):
             return Response({"data": "ok"}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+class AllUsersView(APIView):
+    """
+    View to retrieve all registered users. Access restricted to admin and staff users.
+    """
+    permission_classes = [IsAdminOrStaff]  # Use the custom permission
+
+    def get(self, request):
+        users = CustomUser.objects.all()
+        serializer = CustomUserSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)    
 
 class UserRegistration(APIView):
     """ Endpoint for user registration """
