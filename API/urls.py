@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework import routers
-from .views import ToggleLike, ToggleSave, AddComment, AllUsersView, UserDashboard, ReviewDataHandler, UserProfile, UserRegistration, CommentDataHandler, MovieDataHandler, NewsDataHandler, AwardDataHandler, GenreDataHandler, IndustryDataHandler, StreamingPlatformDataHandler, MostPopularReviewsView, SuggestedReviewsView, UserCommentsView, TrendingReviewsView, LoginView, LogoutView, ForgotPasswordView, ChangePasswordView, SubscribeNewsletterView
+from .views import ToggleLike, ToggleSave, AddComment, AllUsersView, UserDashboard, ReviewDataHandler, UserProfile, UserRegistration, CommentDataHandler, MovieDataHandler, NewsDataHandler, AwardDataHandler, GenreDataHandler, IndustryDataHandler, StreamingPlatformDataHandler, MostPopularReviewsView, SuggestedReviewsView, UserCommentsView, TrendingReviewsView, LoginView, LogoutView, ForgotPasswordView, ChangePasswordView, SubscribeNewsletterView, CustomTokenRefreshView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -8,7 +8,7 @@ router = routers.DefaultRouter()
 router.register(r'reviews', ReviewDataHandler, basename='review')
 router.register(r'users', UserProfile, basename='user')
 router.register(r'all-users', AllUsersView, basename='all-users')
-router.register(r'register', UserRegistration, basename='register')
+# router.register(r'register', UserRegistration, basename='register')
 router.register(r'comments', CommentDataHandler, basename='comment')
 router.register(r'movies', MovieDataHandler, basename='movie')
 router.register(r'news', NewsDataHandler, basename='news')
@@ -31,7 +31,7 @@ urlpatterns = [
     path('reviews/<int:pk>/', ReviewDataHandler.as_view({'get': 'retrieve', 'post': 'create', 'put': 'update', 'delete': 'destroy'}), name='review_detail'),
     # path('users/', AllUsersView.as_view(), name='all-users'),
     # path('user/profile/', UserProfile.as_view(), name='user_profile'),
-    # path('user/register/', UserRegistration.as_view(), name='user-registration'),
+    path('register/', UserRegistration.as_view(), name='user-registration'),
     # path('comments/', CommentDataHandler.as_view(), name='comment_data_handler'),
     path('comments/<int:pk>/', CommentDataHandler.as_view({'get': 'retrieve', 'post': 'create', 'put': 'update', 'delete': 'destroy'}), name='comment_data_handler_detail'),
     # path('movies/', MovieDataHandler.as_view(), name='movie_data_handler'),
@@ -56,6 +56,7 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('forgot-password/', ForgotPasswordView.as_view({'post': 'create'}), name='forgot_password'),
     path('change-password/', ChangePasswordView.as_view({'post': 'create'}), name='change_password'),
+    path('api/refresh/', CustomTokenRefreshView.as_view(), name='custom_token_refresh'),
     # path('subscribe-newsletter/', SubscribeNewsletterView.as_view(), name='subscribe_newsletter'),
     path('', include(router.urls)),
 ]
