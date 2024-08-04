@@ -156,9 +156,16 @@ class UserProfile(viewsets.ModelViewSet):
     serializer_class = CustomUserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request):
-        user_serializer = self.serializer_class(request.user).data
-        return Response({"data": user_serializer}, status=status.HTTP_200_OK)
+    def post(self, request):
+        id = request.data.get('id')
+        if id:
+            try:
+                user = CustomUser.objects.get(id=id)
+                serializer = self.serializer_class(user)
+                return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+            except CustomUser.DoesNotExist:
+                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"error": "id parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
     
 
     def put(self, request):
