@@ -201,7 +201,6 @@ class UserRegistration(generics.CreateAPIView):
             
             return Response({
                 "data": "User created successfully",
-                "user_uuid": str(user.uuid),
                 "refresh": str(refresh),
                 "access": str(refresh.access_token)
             }, status=status.HTTP_201_CREATED)
