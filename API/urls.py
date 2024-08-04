@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework import routers
-from .views import ToggleLike, ToggleSave, AddComment, AllUsersView, UserDashboard, ReviewDataHandler, UserProfile, UserRegistration, CommentDataHandler, MovieDataHandler, NewsDataHandler, AwardDataHandler, GenreDataHandler, IndustryDataHandler, StreamingPlatformDataHandler, MostPopularReviewsView, SuggestedReviewsView, UserCommentsView, TrendingReviewsView, LoginView, LogoutView, ForgotPasswordView, ChangePasswordView, SubscribeNewsletterView
+from .views import ToggleLike, ToggleSave, AddComment, AllUsersView, UserDashboard, ReviewDataHandler, UserProfile, UserRegistration, CommentDataHandler, MovieDataHandler, NewsDataHandler, AwardDataHandler, GenreDataHandler, IndustryDataHandler, StreamingPlatformDataHandler, MostPopularReviewsView, SuggestedReviewsView, UserCommentsView, TrendingReviewsView, LoginView, LogoutView, ForgotPasswordView, ChangePasswordView, SubscribeNewsletterView, CustomTokenRefreshView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -56,6 +56,7 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('forgot-password/', ForgotPasswordView.as_view({'post': 'create'}), name='forgot_password'),
     path('change-password/', ChangePasswordView.as_view({'post': 'create'}), name='change_password'),
+    path('api/refresh/', CustomTokenRefreshView.as_view(), name='custom_token_refresh'),
     # path('subscribe-newsletter/', SubscribeNewsletterView.as_view(), name='subscribe_newsletter'),
     path('', include(router.urls)),
 ]
