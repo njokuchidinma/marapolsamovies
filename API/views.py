@@ -156,6 +156,13 @@ class UserProfile(viewsets.ModelViewSet):
     serializer_class = CustomUserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get(self, request):
+        serializer = self.serializer_class(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"data": "ok"}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def post(self, request):
         id = request.data.get('id')
         if id:
