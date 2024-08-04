@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.http import HttpRequest
-from .models import CustomUser, Review, News, Award, Movie, Industry, Genre, StreamingPlatform
+from .models import CustomUser, Review, News, Award, Movie, Industry, Genre, StreamingPlatform, Comment, NewsletterSubscription
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.admin import UserAdmin
 
@@ -14,10 +14,10 @@ class CustomUserAdmin(UserAdmin):
     
     fieldsets = (
         (None, {"fields": ("email_address", "password")}),
-        ("Personal Info", {"fields": ("username", "country", "gender")}),
+        ("Personal Info", {"fields": ("username", "country", "gender", "profile_picture")}),
         ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
         ("User Interactions", {'fields': ('liked_reviews', 'saved_reviews', 'liked_new', 'saved_new', 'liked_awards', 'saved_awards')}),
-        ("Important dates", {"fields": ("last_login",)}),
+        ("Important dates", {"fields": ("last_login", "date_joined")}),
     )
     add_fieldsets = (
         (None, {
@@ -63,16 +63,16 @@ class CustomUserAdmin(UserAdmin):
         return False
 
     def current_user(self, request):
-        current_user = get_object_or_404(CustomUser, email_address=request)
+        current_user = get_object_or_404(CustomUser, email_address=request.user.email_address)
         return current_user
     
     
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ('title', 'content_type', 'streaming_platform', 'director', 'publisher', 'timestamp')
+    list_display = ('title', 'content', 'streaming_platform', 'director', 'publisher', 'timestamp')
     search_fields = ('title', 'content', 'director', 'cast')
-    list_filter = ('content_type', 'streaming_platform', 'timestamp')
+    list_filter = ('content', 'streaming_platform', 'timestamp')
 
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
@@ -89,8 +89,8 @@ class AwardAdmin(admin.ModelAdmin):
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):
     list_display = ('title', 'release_date', 'director', 'producer', 'genre', 'streaming_platform', 'industry')
-    search_fields = ('title', 'brief_description', 'director', 'producer', 'cast')
-    list_filter = ('release_date', 'genre', 'streaming_platform', 'industry')
+    search_fields = ('title', 'brief_description', 'director', 'producer', 'cast', 'content')
+    list_filter = ('release_date', 'genre', 'streaming_platform', 'industry', 'timestamp')
 
 @admin.register(Industry)
 class IndustryAdmin(admin.ModelAdmin):
@@ -106,3 +106,14 @@ class GenreAdmin(admin.ModelAdmin):
 class StreamingPlatformAdmin(admin.ModelAdmin):
     list_display = ('name',)
     search_fields = ('name',)
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('user', 'content_type', 'content', 'timestamp', 'like_count')
+    search_fields = ('content', 'user__username')
+    list_filter = ('timestamp',)
+
+@admin.register(NewsletterSubscription)
+class NewsletterSubscriptionAdmin(admin.ModelAdmin):
+    list_display = ('email_address', 'first_name', 'subscribed_on')
+    search_fields = ('email_address', 'first_name')

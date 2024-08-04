@@ -1,15 +1,41 @@
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.contenttypes.models import ContentType
-from rest_framework import status, permissions
+from django.core.mail import send_mail
+from django.utils import timezone
+from django.db.models import Count
+from datetime import timedelta
+from rest_framework import status, permissions, viewsets
 from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 from rest_framework.response import Response
-from .models import Review, CustomUser, Comment, Movie, News, Award, Genre, Industry, StreamingPlatform
+from rest_framework_simplejwt.tokens import RefreshToken
+from .models import Review, CustomUser, Comment, Movie, News, Award, Genre, Industry, StreamingPlatform, NewsletterSubscription
 from .permissions import IsAdminOrStaff
-from .serializers import ReviewSerializer, CustomUserSerializer, CommentSerializer, MovieSerializer, NewsSerializer, AwardSerializer, GenreSerializer, IndustrySerializer, StreamingPlatformSerializer
+from .serializers import ReviewSerializer, CustomUserSerializer, CommentSerializer, MovieSerializer, NewsSerializer, AwardSerializer, GenreSerializer, NewsletterSubscriptionSerializer, IndustrySerializer, StreamingPlatformSerializer, ForgotPasswordSerializer, ChangePasswordSerializer
 
 
 
+class LoginView(APIView):
+    def post(self, request):
+        email_address = request.data.get('email_address')
+        password = request.data.get('password')
+        
+        # Authenticate user
+        user = authenticate(request, email_address=email_address, password=password)
+        
+        if user is not None:
+            # Create a refresh token for the authenticated user
+            refresh = RefreshToken.for_user(user)
+            
+            return Response({
+                "refresh": str(refresh),
+                "access": str(refresh.access_token)
+            }, status=status.HTTP_200_OK)
+        
+        # Return error if authentication fails
+        return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
 
 class ToggleLike(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -79,7 +105,7 @@ class UserDashboard(APIView):
         }
         return Response(data, status=status.HTTP_200_OK)  
 
-class ReviewDataHandler(APIView):
+class ReviewDataHandler(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -120,7 +146,7 @@ class ReviewDataHandler(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class UserProfile(APIView):
+class UserProfile(viewsets.ModelViewSet):
     """ THIS ENDPOINT IS USED TO GET/UPDATE USER INFO ON THE SERVER """
 
     queryset = CustomUser.objects.all()
@@ -142,19 +168,22 @@ class UserProfile(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class AllUsersView(APIView):
+class AllUsersView(viewsets.ModelViewSet):
     """
     View to retrieve all registered users. Access restricted to admin and staff users.
     """
     permission_classes = [IsAdminOrStaff]  # Use the custom permission
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
 
     def get(self, request):
-        users = CustomUser.objects.all()
-        serializer = CustomUserSerializer(users, many=True)
+        serializer = self.serializer_class(self.queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)    
 
-class UserRegistration(APIView):
+class UserRegistration(viewsets.ModelViewSet):
     """ Endpoint for user registration """
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
 
     def post(self, request):
         """ Register a new user """
@@ -166,7 +195,7 @@ class UserRegistration(APIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class CommentDataHandler(APIView):
+class CommentDataHandler(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -201,8 +230,20 @@ class CommentDataHandler(APIView):
         comment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+class UserCommentsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
 
-class MovieDataHandler(APIView):
+    def get(self, request, content_type, object_id):
+        user = request.user
+        content_type = ContentType.objects.get(model=content_type)
+        comments = Comment.objects.filter(
+            content_type=content_type, object_id=object_id, user=user
+        )
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class MovieDataHandler(viewsets.ModelViewSet):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -235,7 +276,7 @@ class MovieDataHandler(APIView):
         movie.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class NewsDataHandler(APIView):
+class NewsDataHandler(viewsets.ModelViewSet):
     queryset = News.objects.all()
     serializer_class = NewsSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -268,7 +309,7 @@ class NewsDataHandler(APIView):
         news.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class AwardDataHandler(APIView):
+class AwardDataHandler(viewsets.ModelViewSet):
     queryset = Award.objects.all()
     serializer_class = AwardSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -301,7 +342,7 @@ class AwardDataHandler(APIView):
         award.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class GenreDataHandler(APIView):
+class GenreDataHandler(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -319,7 +360,7 @@ class GenreDataHandler(APIView):
             return Response({"data": "ok"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class IndustryDataHandler(APIView):
+class IndustryDataHandler(viewsets.ModelViewSet):
     queryset = Industry.objects.all()
     serializer_class = IndustrySerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -352,7 +393,7 @@ class IndustryDataHandler(APIView):
         industry.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-class StreamingPlatformDataHandler(APIView):
+class StreamingPlatformDataHandler(viewsets.ModelViewSet):
     queryset = StreamingPlatform.objects.all()
     serializer_class = StreamingPlatformSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -384,3 +425,123 @@ class StreamingPlatformDataHandler(APIView):
         platform = get_object_or_404(self.queryset, pk=pk)
         platform.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+class MostPopularReviewsView(APIView):
+    pagination_class = LimitOffsetPagination
+
+    def get(self, request):
+        two_months_ago = timezone.now() - timedelta(days=60)
+        popular_reviews = Review.objects.annotate(
+            interaction_count=Count('liked_by_users') + Count('comments')
+        ).filter(timestamp__gte=two_months_ago).order_by('-interaction_count')
+        paginator = self.pagination_class()
+        paginated_reviews = paginator.paginate_queryset(popular_reviews, request)
+        serializer = ReviewSerializer(popular_reviews, many=True)
+        return paginator.get_paginated_response(serializer.data)
+    
+class SuggestedReviewsView(APIView):
+    pagination_class = LimitOffsetPagination
+
+    def get(self, request, review_id):
+        review = get_object_or_404(Review, id=review_id)
+        suggested_reviews = Review.objects.filter(
+            genre=review.genre
+        ).exclude(id=review.id).order_by('?')
+        paginator = self.pagination_class()
+        paginated_reviews = paginator.paginate_queryset(suggested_reviews, request)
+        serializer = ReviewSerializer(paginated_reviews, many=True)
+        return paginator.get_paginated_response(serializer.data)
+    
+class TrendingReviewsView(APIView):
+    pagination_class = LimitOffsetPagination
+
+    def get(self, request):
+        two_days_ago = timezone.now() - timedelta(days=2)
+        trending_reviews = Review.objects.annotate(
+            interaction_count=Count('liked_by_users') + Count('comments')
+        ).filter(timestamp__gte=two_days_ago).order_by('-interaction_count')
+        paginator = self.pagination_class()
+        paginated_reviews = paginator.paginate_queryset(trending_reviews, request)
+        serializer = ReviewSerializer(paginated_reviews, many=True)
+        return paginator.get_paginated_response(serializer.data)
+    
+class MovieReviewListView(APIView):
+    pagination_class = LimitOffsetPagination
+
+    def get(self, request):
+        movie_reviews = Review.objects.filter(content='MOVIE')
+        paginator = self.pagination_class()
+        paginated_reviews = paginator.paginate_queryset(movie_reviews, request)
+        serializer = ReviewSerializer(paginated_reviews, many=True)
+        return paginator.get_paginated_response(serializer.data)
+    
+class TVShowReviewListView(APIView):
+    pagination_class = LimitOffsetPagination
+
+    def get(self, request):
+        tv_show_reviews = Review.objects.filter(content='TV_SHOW')
+        paginator = self.pagination_class()
+        paginated_reviews = paginator.paginate_queryset(tv_show_reviews, request)
+        serializer = ReviewSerializer(paginated_reviews, many=True)
+        return paginator.get_paginated_response(serializer.data)
+    
+class SubscribeNewsletterView(viewsets.ModelViewSet):
+    queryset = NewsletterSubscription.objects.all()
+    serializer_class = NewsletterSubscriptionSerializer
+
+    def post(self, request):
+        serializer = NewsletterSubscriptionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Subscribed to newsletter"}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class LogoutView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        request.user.auth_token.delete()
+        logout(request)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class ForgotPasswordView(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.all()
+    serializer_class = ForgotPasswordSerializer
+    def post(self, request):
+        email = request.data.get('email_address')
+        try:
+            user = CustomUser.objects.get(email_address=email)
+            new_password = CustomUser.objects.make_random_password()
+            user.set_password(new_password)
+            user.save()
+            send_mail(
+                'Your new password',
+                f'Your new password is: {new_password}',
+                'admin@marapolsa.com',
+                [email],
+            )
+            return Response({"message": "New password sent to your email"}, status=status.HTTP_200_OK)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "Email not found"}, status=status.HTTP_400_BAD_REQUEST)
+        
+class ChangePasswordView(viewsets.ModelViewSet):
+    serializer_class = ChangePasswordSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = CustomUser.objects.all() 
+
+    def post(self, request):
+        user = request.user
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+        confirm_password = request.data.get('confirm_password')
+
+        if not user.check_password(old_password):
+            return Response({"error": "Old password is incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if new_password != confirm_password:
+            return Response({"error": "New passwords do not match"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({"message": "Password changed successfully"}, status=status.HTTP_200_OK)
