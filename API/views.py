@@ -32,7 +32,7 @@ class LoginView(APIView):
             refresh = RefreshToken.for_user(user)
             
             return Response({
-                "user_uuid": str(user.uuid),
+                "id": str(user.id),
                 "refresh": str(refresh),
                 "access": str(refresh.access_token)
             }, status=status.HTTP_200_OK)
@@ -201,7 +201,7 @@ class UserRegistration(generics.CreateAPIView):
             
             return Response({
                 "data": "User created successfully",
-                "user_uuid": str(user.uuid),
+                "id": str(user.id),
                 "refresh": str(refresh),
                 "access": str(refresh.access_token)
             }, status=status.HTTP_201_CREATED)
