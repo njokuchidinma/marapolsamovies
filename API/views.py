@@ -156,7 +156,7 @@ class UserProfile(viewsets.ModelViewSet):
     serializer_class = CustomUserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request):
+    def post(self, request):
         user_serializer = self.serializer_class(request.user).data
         return Response({"data": user_serializer}, status=status.HTTP_200_OK)
     
