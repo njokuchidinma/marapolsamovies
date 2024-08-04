@@ -123,6 +123,8 @@ class StreamingPlatformSerializer(ModelSerializer):
             'name': {'help_text': 'The name of the streaming platform'}
         }
 
+
+
 class ForgotPasswordSerializer(ModelSerializer):
     email_address = EmailField(required=True)
 

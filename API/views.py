@@ -6,11 +6,13 @@ from django.core.mail import send_mail
 from django.utils import timezone
 from django.db.models import Count
 from datetime import timedelta
-from rest_framework import status, permissions, viewsets
+from rest_framework import status, permissions, viewsets, generics
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from .models import Review, CustomUser, Comment, Movie, News, Award, Genre, Industry, StreamingPlatform, NewsletterSubscription
 from .permissions import IsAdminOrStaff
 from .serializers import ReviewSerializer, CustomUserSerializer, CommentSerializer, MovieSerializer, NewsSerializer, AwardSerializer, GenreSerializer, NewsletterSubscriptionSerializer, IndustrySerializer, StreamingPlatformSerializer, ForgotPasswordSerializer, ChangePasswordSerializer
@@ -180,18 +182,27 @@ class AllUsersView(viewsets.ModelViewSet):
         serializer = self.serializer_class(self.queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)    
 
-class UserRegistration(viewsets.ModelViewSet):
+class UserRegistration(generics.CreateAPIView):
     """ Endpoint for user registration """
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
+    permission_classes = [permissions.AllowAny]
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         """ Register a new user """
-        serializer = CustomUserSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         
         if serializer.is_valid():
-            serializer.save()
-            return Response({"data": "User created successfully"}, status=status.HTTP_201_CREATED)
+            user = serializer.save()
+            
+            # Generate JWT tokens
+            refresh = RefreshToken.for_user(user)
+            
+            return Response({
+                "data": "User created successfully",
+                "refresh": str(refresh),
+                "access": str(refresh.access_token)
+            }, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -545,3 +556,29 @@ class ChangePasswordView(viewsets.ModelViewSet):
         user.set_password(new_password)
         user.save()
         return Response({"message": "Password changed successfully"}, status=status.HTTP_200_OK)
+    
+
+class CustomTokenRefreshView(TokenRefreshView):
+    """
+    Custom view to generate an access token with a specific expiration time.
+    """
+    serializer_class = TokenRefreshSerializer
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+
+        if response.status_code == 200:
+            refresh_token = request.data.get('refresh')
+            if refresh_token:
+                # Decode the refresh token to get the user
+                access_token = AccessToken()
+                access_token.set_exp(lifetime=timedelta(days=3))
+                
+                # Use the refresh token to create a new access token
+                user = access_token.for_user(refresh_token.user)
+                access_token['user_id'] = user.id
+                
+                # Add custom access token to the response
+                response.data['access'] = str(access_token)
+
+        return response
