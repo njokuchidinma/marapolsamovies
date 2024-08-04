@@ -56,7 +56,7 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('forgot-password/', ForgotPasswordView.as_view({'post': 'create'}), name='forgot_password'),
     path('change-password/', ChangePasswordView.as_view({'post': 'create'}), name='change_password'),
-    path('api/refresh/', CustomTokenRefreshView.as_view(), name='custom_token_refresh'),
+    path('refresh/', CustomTokenRefreshView.as_view(), name='custom_token_refresh'),
     # path('subscribe-newsletter/', SubscribeNewsletterView.as_view(), name='subscribe_newsletter'),
     path('', include(router.urls)),
 ]
