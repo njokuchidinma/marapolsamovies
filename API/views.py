@@ -149,40 +149,85 @@ class ReviewDataHandler(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class UserProfile(viewsets.ModelViewSet):
-    """ THIS ENDPOINT IS USED TO GET/UPDATE USER INFO ON THE SERVER """
+# class UserProfile(viewsets.ModelViewSet):
+#     """ THIS ENDPOINT IS USED TO GET/UPDATE USER INFO ON THE SERVER """
 
-    queryset = CustomUser.objects.all()
-    serializer_class = CustomUserSerializer
-    permission_classes = [permissions.IsAuthenticated]
+#     queryset = CustomUser.objects.all()
+#     serializer_class = CustomUserSerializer
+#     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request):
-        serializer = self.serializer_class(request.user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"data": "ok"}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#     def get(self, request):
+#         serializer = self.serializer_class(request.user, data=request.data, partial=True)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response({"data": "ok"}, status=status.HTTP_200_OK)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request):
-        id = request.data.get('id')
-        if id:
-            try:
-                user = CustomUser.objects.get(id=id)
-                serializer = self.serializer_class(user)
-                return Response({"data": serializer.data}, status=status.HTTP_200_OK)
-            except CustomUser.DoesNotExist:
-                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-        return Response({"error": "id parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+#     def post(self, request):
+#         id = request.data.get('id')
+#         if id:
+
+#             try:
+#                 user = CustomUser.objects.get(id=id)
+#                 serializer = self.serializer_class(user)
+#                 return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+#             except CustomUser.DoesNotExist:
+#                 return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+#         return Response({"error": "id parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
     
 
-    def put(self, request):
-        user = request.user
-        serializer = self.serializer_class(user, data=request.data, partial=True)
+#     def put(self, request):
+#         user = request.user
+#         serializer = self.serializer_class(user, data=request.data, partial=True)
 
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response({"data": "ok"}, status=status.HTTP_200_OK)
+
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class UserProfile(viewsets.ViewSet):
+    """This endpoint is used to get/update user info on the server."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def retrieve(self, request, pk=None):
+        """Get a specific user's information by user ID (primary key)."""
+        try:
+            user = CustomUser.objects.get(pk=pk)
+            serializer = CustomUserSerializer(user)
+            return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    def update(self, request, pk=None):
+        """Update a specific user's information."""
+        try:
+            user = CustomUser.objects.get(pk=pk)
+            serializer = CustomUserSerializer(user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"data": "User updated successfully"}, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    def list(self, request):
+        """List all users or the current user's information."""
+        if request.user.is_authenticated:
+            serializer = CustomUserSerializer(request.user)
+            return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+        else:
+            users = CustomUser.objects.all()
+            serializer = CustomUserSerializer(users, many=True)
+            return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+
+    def create(self, request):
+        """Create a new user."""
+        serializer = CustomUserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response({"data": "ok"}, status=status.HTTP_200_OK)
-
+            return Response({"data": "User created successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class AllUsersView(viewsets.ModelViewSet):
