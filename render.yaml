@@ -10,7 +10,7 @@ services:
       - type: static
         name: static
         path: /static
-        root: /marapolsa_movies/staticfiles
+        root: /marapolsa_movies/static
       - type: static
         name: media
         path: /media
