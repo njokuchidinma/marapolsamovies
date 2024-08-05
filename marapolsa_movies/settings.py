@@ -29,6 +29,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'marapolsamovies.pythonanywhere.com',
     'www.marapolsamovies.pythonanywhere.com',
+    'marapolsamovies.onrender.com',
     'localhost',
     '127.0.0.1',
     'render.com',
