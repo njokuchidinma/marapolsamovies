@@ -19,3 +19,4 @@ referencing==0.35.1
 rpds-py==0.19.1
 sqlparse==0.5.1
 uritemplate==4.1.1
+gunicorn
