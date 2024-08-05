@@ -2,8 +2,10 @@ services:
   - type: web
     name: marapolsamovies
     env: python
-    buildCommand: "./build.sh"
-    startCommand: "gunicorn marapolsa_movies.wsgi:application"
+    build:
+      command: pip install -r requirements.txt
+    start:
+      command: gunicorn marapolsa_movies.wsgi:application
     static:
       - type: static
         name: static
