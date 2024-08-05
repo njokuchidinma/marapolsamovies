@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from .models import Review, CustomUser, Comment, Movie, News, Award, Genre, Industry, StreamingPlatform, NewsletterSubscription
@@ -569,19 +570,43 @@ class SubscribeNewsletterView(viewsets.ModelViewSet):
             return Response({"message": "Subscribed to newsletter"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# class LogoutView(APIView):
+#     permission_classes = [permissions.IsAuthenticated]
+
+#     def post(self, request):
+#         try:
+#             # Blacklist the refresh token
+#             refresh_token = request.data.get("refresh")
+#             token = RefreshToken(refresh_token)
+#             token.blacklist()
+
+#             return Response(status=status.HTTP_205_RESET_CONTENT)
+#         except Exception as e:
+#             return Response(status=status.HTTP_400_BAD_REQUEST)
+    
 class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         try:
-            # Blacklist the refresh token
+            # Retrieve the refresh token from the request data
             refresh_token = request.data.get("refresh")
+            if not refresh_token:
+                return Response({"error": "Refresh token is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Attempt to blacklist the token
             token = RefreshToken(refresh_token)
             token.blacklist()
 
             return Response(status=status.HTTP_205_RESET_CONTENT)
+
+        except TokenError as e:
+            # TokenError is raised when a token is invalid or cannot be blacklisted
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
         except Exception as e:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            # Catch other exceptions and return a more detailed error message
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 class ForgotPasswordView(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
