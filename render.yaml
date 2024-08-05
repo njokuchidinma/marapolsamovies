@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: marapolsamovies
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn marapolsa_movies.wsgi:application"
+    static:
+      - type: static
+        name: static
+        path: /static
+        root: /marapolsa_movies/staticfiles
+      - type: static
+        name: media
+        path: /media
+        root: /marapolsa_movies/media
