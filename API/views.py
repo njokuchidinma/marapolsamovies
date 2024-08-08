@@ -191,7 +191,7 @@ class ReviewDataHandler(viewsets.ModelViewSet):
 class UserProfile(viewsets.ViewSet):
     """This endpoint is used to get/update user info on the server."""
 
-    permission_classes = [permissions.IsAuthenticated]
+    #permission_classes = [permissions.IsAuthenticated]
 
     def retrieve(self, request, pk=None):
         """Get a specific user's information by user ID (primary key)."""
