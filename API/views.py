@@ -21,6 +21,7 @@ from .serializers import ReviewSerializer, CustomUserSerializer, CommentSerializ
 
 
 class LoginView(APIView):
+    permission_classes = [permissions.AllowAny]
     def post(self, request):
         email_address = request.data.get('email_address')
         password = request.data.get('password')
