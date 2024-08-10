@@ -191,7 +191,7 @@ class ReviewDataHandler(viewsets.ModelViewSet):
 class UserProfile(viewsets.ViewSet):
     """This endpoint is used to get/update user info on the server."""
 
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
 
     def retrieve(self, request, pk=None):
         """Get a specific user's information by user ID (primary key)."""
@@ -216,7 +216,7 @@ class UserProfile(viewsets.ViewSet):
 
     def list(self, request):
         """List all users or the current user's information."""
-        if request.user.is_authenticated:
+        if request.user:
             serializer = CustomUserSerializer(request.user)
             return Response({"data": serializer.data}, status=status.HTTP_200_OK)
         else:
