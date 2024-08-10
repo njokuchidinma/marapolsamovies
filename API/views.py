@@ -191,7 +191,7 @@ class ReviewDataHandler(viewsets.ModelViewSet):
 class UserProfile(viewsets.ViewSet):
     """This endpoint is used to get/update user info on the server."""
 
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def retrieve(self, request, pk=None):
         """Get a specific user's information by user ID (primary key)."""
@@ -216,7 +216,7 @@ class UserProfile(viewsets.ViewSet):
 
     def list(self, request):
         """List all users or the current user's information."""
-        if request.user.is_authenticated:
+        if request.user:
             serializer = CustomUserSerializer(request.user)
             return Response({"data": serializer.data}, status=status.HTTP_200_OK)
         else:
@@ -321,6 +321,7 @@ class MovieDataHandler(viewsets.ModelViewSet):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    #permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         movies = self.queryset.all().order_by("-timestamp")
@@ -354,6 +355,7 @@ class NewsDataHandler(viewsets.ModelViewSet):
     queryset = News.objects.all()
     serializer_class = NewsSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    #permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         news = self.queryset.all().order_by("-timestamp")
@@ -387,6 +389,7 @@ class AwardDataHandler(viewsets.ModelViewSet):
     queryset = Award.objects.all()
     serializer_class = AwardSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+   # permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         awards = self.queryset.all().order_by("-timestamp")
@@ -420,6 +423,7 @@ class GenreDataHandler(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+   # permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         genres = self.queryset.all()
@@ -437,7 +441,8 @@ class GenreDataHandler(viewsets.ModelViewSet):
 class IndustryDataHandler(viewsets.ModelViewSet):
     queryset = Industry.objects.all()
     serializer_class = IndustrySerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.AllowAny]
+    #permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get(self, request):
         industries = self.queryset.all()
