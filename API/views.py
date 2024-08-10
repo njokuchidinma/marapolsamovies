@@ -443,8 +443,8 @@ class GenreDataHandler(viewsets.ModelViewSet):
 class IndustryDataHandler(viewsets.ModelViewSet):
     queryset = Industry.objects.all()
     serializer_class = IndustrySerializer
-    permission_classes = [permissions.AllowAny]
-    #permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+   # permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get(self, request):
         industries = self.queryset.all()
@@ -626,6 +626,7 @@ class LogoutView(APIView):
 class ForgotPasswordView(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = ForgotPasswordSerializer
+    permission_classes = [permissions.AllowAny]
     def post(self, request):
         email = request.data.get('email_address')
         try:
