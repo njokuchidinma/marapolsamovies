@@ -191,7 +191,7 @@ class ReviewDataHandler(viewsets.ModelViewSet):
 class UserProfile(viewsets.ViewSet):
     """This endpoint is used to get/update user info on the server."""
 
-    #permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def retrieve(self, request, pk=None):
         """Get a specific user's information by user ID (primary key)."""
@@ -608,6 +608,13 @@ class LogoutView(APIView):
         except Exception as e:
             # Catch other exceptions and return a more detailed error message
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+# class LogoutView(APIView):
+# authentication_classes = (TokenAuthentication, )
+
+#     def post(self, request):
+#         django_logout(request)
+#         return Response(status=204)
         
 class ForgotPasswordView(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
