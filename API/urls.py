@@ -61,4 +61,4 @@ urlpatterns = [
     path('refresh/', CustomTokenRefreshView.as_view(), name='custom_token_refresh'),
     # path('subscribe-newsletter/', SubscribeNewsletterView.as_view(), name='subscribe_newsletter'),
     path('', include(router.urls)),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] 
