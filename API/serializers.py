@@ -1,6 +1,9 @@
 from rest_framework.serializers import ModelSerializer, SerializerMethodField, EmailField, CharField, Serializer
 from .models import CustomUser, Comment, Review, News, Award, Movie, Industry, Genre, StreamingPlatform, NewsletterSubscription
-
+from rest_framework.exceptions import ValidationError
+from rest_framework import serializers
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.translation import gettext_lazy as _
 
 
 class NewsletterSubscriptionSerializer(ModelSerializer):
@@ -132,9 +135,27 @@ class ForgotPasswordSerializer(ModelSerializer):
         model = CustomUser
         fields = ['email_address']
 
-class ChangePasswordSerializer(Serializer):
-    old_password = CharField(required=True)
-    new_password = CharField(required=True)
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+    confirm_password = serializers.CharField(required=True)
+
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise ValidationError("Old password is incorrect.")
+        return value
+
+    def validate(self, data):
+        if data['new_password'] != data['confirm_password']:
+            raise ValidationError("New passwords do not match.")
+        return data
+
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data['new_password'])
+        instance.save()
+        return instance
+
 
 class CustomUserSerializer(ModelSerializer):
     liked_reviews = ReviewSerializer(many=True, read_only=True)
@@ -183,3 +204,21 @@ class CustomUserSerializer(ModelSerializer):
         instance.save()
         return instance
     
+# class CustomPasswordResetSerializer(serializers.Serializer):
+#     email_address = serializers.EmailField()
+
+#     def validate_email_address(self, value):
+#         try:
+#             self.user = CustomUser.objects.get(email_address=value)
+#         except CustomUser.DoesNotExist:
+#             raise serializers.ValidationError(_("User with this email does not exist."))
+#         return value
+
+#     def save(self):
+#         # Generate a token
+#         token = default_token_generator.make_token(self.user)
+        
+#         # Normally, you would save the token in a model or send it to the user via email
+#         # Here, we assume your signals.py handles sending the email with the token
+
+#         return token

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 import os
+from decouple import config
 from django.conf import settings
 from django.conf.urls.static import static
 from pathlib import Path
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+
     'API',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -75,7 +77,7 @@ ROOT_URLCONF = 'marapolsa_movies.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR, 'templates/',],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -200,6 +202,19 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+
+# Email Backend
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# SMTP Server Configuration
+EMAIL_HOST = 'smtp.gmail.com'  # Replace with your email provider's SMTP server
+EMAIL_PORT = 465               # Port for TLS - 587
+EMAIL_USE_TLS = False           # Use TLS for secure connection
+EMAIL_USE_SSL = True           # Use SSL 
+#EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_USER = 'kimberlypeters301@gmail.com'
+EMAIL_HOST_PASSWORD = 'uawowmxnvfxcbihi'  # Your email password or app-specific password
+DEFAULT_FROM_EMAIL = 'Marapolsa <kimberlypeters301@gmail.com>'  # Default sender
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
