@@ -702,40 +702,27 @@ class ForgotPasswordView(APIView):
     serializer_class = ForgotPasswordSerializer
     permission_classes = [permissions.AllowAny]
 
+
     def post(self, request):
         email = request.data.get('email_address')
         users = CustomUser.objects.filter(email_address=email)
         if users.exists():
-                user = users.first(),
-                new_password = 'AAAAAAADSSDS'
-                user.set_password(new_password)
-                # user.save()
-                # send_mail(
-                #    'Your new password',
-                #     f'Your new password is: {new_password}',
-                #     'admin@marapolsa.com',
-                #     [email],
-                #  )
-                return Response({"message": "New password sent to your email"}, status=status.HTTP_200_OK)
+                user = users.first()
+                new_password = 'AAAAAAADSSDS' #TODO: this is where your random password generator function is called.
+                try:
+                    # added a try except block because, most times the sending email of django sometimes fails and we wouldn't want to encounter any errors in production
+                    send_mail(
+                    'Your new password',
+                        f'Your new password is: {new_password}',
+                        'admin@marapolsa.com',
+                        [email],
+                    )
+                    user.set_password(new_password)
+                    user.save()
+                    return Response({"message": "New password sent to your email"}, status=status.HTTP_200_OK)
+                except:
+                    pass
         return Response({"error": "Email not found"}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-#                 print(f"User found: {user.username}")
-#                 new_password = CustomUser.objects.make_random_password()
-#                 user.set_password(new_password)
-#                 user.save()
-#                 send_mail(
-#                     'Your new password',
-#                     f'Your new password is: {new_password}',
-#                     'admin@marapolsa.com',
-#                     [email],
-#                 )
-#                 return Response({"message": "New password sent to your email"}, status=status.HTTP_200_OK)
-#             except CustomUser.DoesNotExist:
-#                 return Response({"error": "Email not found"}, status=status.HTTP_400_BAD_REQUEST)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ChangePassword(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
