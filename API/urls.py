@@ -2,7 +2,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework import routers
-from .views import ToggleLike, ToggleSave, AddComment, AllUsersView, UserDashboard, ReviewDataHandler, UserProfile, UserRegistration, CommentDataHandler, MovieDataHandler, NewsDataHandler, AwardDataHandler, GenreDataHandler, IndustryDataHandler, StreamingPlatformDataHandler, MostPopularReviewsView, SuggestedReviewsView, UserCommentsView, TrendingReviewsView, LoginView, LogoutView, ChangePassword, SubscribeNewsletterView, CustomTokenRefreshView, ForgotPasswordView
+from .views import ToggleLike, ToggleSave, AddComment, AllUsersView, UserDashboard, ReviewDataHandler, UserProfile, UserRegistration, CommentDataHandler, MovieDataHandler, NewsDataHandler, AwardDataHandler, GenreDataHandler, IndustryDataHandler, StreamingPlatformDataHandler, MostPopularReviewsView, SuggestedReviewsView, TVShowReviewListView, UserCommentsView, TrendingReviewsView, LoginView, LogoutView, ChangePassword, SubscribeNewsletterView, CustomTokenRefreshView, ForgotPasswordView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -51,14 +51,15 @@ urlpatterns = [
     # path('authenticate-user/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('refresh-authentication/', TokenRefreshView.as_view(), name='token_refresh'),
     path('popular-reviews/', MostPopularReviewsView.as_view(), name='popular_reviews'),
+    path('tvshow-reviews/', TVShowReviewListView.as_view(), name='tvshow_reviews'),
     path('suggested-reviews/<uuid:review_id>/', SuggestedReviewsView.as_view(), name='suggested_reviews'),
     path('user-comments/<str:content_type>/<int:object_id>/', UserCommentsView.as_view(), name='user_comments'),
     path('trending-reviews/', TrendingReviewsView.as_view(), name='trending_reviews'),
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
-    #path('change-password/', ChangePasswordView.as_view({'post': 'create'}), name='change_password'),
     path('refresh/', CustomTokenRefreshView.as_view(), name='custom_token_refresh'),
     # path('subscribe-newsletter/', SubscribeNewsletterView.as_view(), name='subscribe_newsletter'),
     path('', include(router.urls)),
 ] 
+

@@ -188,3 +188,4 @@ class NewsletterSubscription(models.Model):
     email_address = models.EmailField(unique=True)
     first_name = models.CharField(max_length=50)
     subscribed_on = models.DateTimeField(auto_now_add=True)
+

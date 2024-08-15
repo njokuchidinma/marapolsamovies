@@ -1,16 +1,14 @@
-from django.shortcuts import get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import get_object_or_404
+from django.contrib.auth import authenticate
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
 from django.db.models import Count
-from django.db import IntegrityError
 from datetime import timedelta
 from rest_framework import status, permissions, viewsets, generics
 from rest_framework.views import APIView
-from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.exceptions import TokenError
@@ -18,8 +16,8 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from .models import Review, CustomUser, Comment, Movie, News, Award, Genre, Industry, StreamingPlatform, NewsletterSubscription
 from .permissions import IsAdminOrStaff
+from .utils import generate_random_password
 from .serializers import ReviewSerializer, CustomUserSerializer, CommentSerializer, MovieSerializer, NewsSerializer, AwardSerializer, GenreSerializer, NewsletterSubscriptionSerializer, IndustrySerializer, StreamingPlatformSerializer, ChangePasswordSerializer, ForgotPasswordSerializer
-# from django_rest_passwordreset.views import ResetPasswordRequestToken
 
 
 
@@ -153,44 +151,6 @@ class ReviewDataHandler(viewsets.ModelViewSet):
         review = get_object_or_404(self.queryset, pk=pk)
         review.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-# class UserProfile(viewsets.ModelViewSet):
-#     """ THIS ENDPOINT IS USED TO GET/UPDATE USER INFO ON THE SERVER """
-
-#     queryset = CustomUser.objects.all()
-#     serializer_class = CustomUserSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-
-#     def get(self, request):
-#         serializer = self.serializer_class(request.user, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({"data": "ok"}, status=status.HTTP_200_OK)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#     def post(self, request):
-#         id = request.data.get('id')
-#         if id:
-
-#             try:
-#                 user = CustomUser.objects.get(id=id)
-#                 serializer = self.serializer_class(user)
-#                 return Response({"data": serializer.data}, status=status.HTTP_200_OK)
-#             except CustomUser.DoesNotExist:
-#                 return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-#         return Response({"error": "id parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
-    
-
-#     def put(self, request):
-#         user = request.user
-#         serializer = self.serializer_class(user, data=request.data, partial=True)
-
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({"data": "ok"}, status=status.HTTP_200_OK)
-
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class UserProfile(viewsets.ViewSet):
     """This endpoint is used to get/update user info on the server."""
@@ -428,7 +388,6 @@ class GenreDataHandler(viewsets.ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-   # permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         genres = self.queryset.all()
@@ -446,7 +405,6 @@ class GenreDataHandler(viewsets.ModelViewSet):
 class IndustryDataHandler(viewsets.ModelViewSet):
     queryset = Industry.objects.all()
     serializer_class = IndustrySerializer
-   # permission_classes = [permissions.AllowAny]
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get(self, request):
@@ -580,20 +538,6 @@ class SubscribeNewsletterView(viewsets.ModelViewSet):
             serializer.save()
             return Response({"message": "Subscribed to newsletter"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# class LogoutView(APIView):
-#     permission_classes = [permissions.IsAuthenticated]
-
-#     def post(self, request):
-#         try:
-#             # Blacklist the refresh token
-#             refresh_token = request.data.get("refresh")
-#             token = RefreshToken(refresh_token)
-#             token.blacklist()
-
-#             return Response(status=status.HTTP_205_RESET_CONTENT)
-#         except Exception as e:
-#             return Response(status=status.HTTP_400_BAD_REQUEST)
     
 class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -619,101 +563,28 @@ class LogoutView(APIView):
             # Catch other exceptions and return a more detailed error message
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
-# class LogoutView(APIView):
-# authentication_classes = (TokenAuthentication, )
-
-#     def post(self, request):
-#         django_logout(request)
-#         return Response(status=204)
-        
-# class ForgotPasswordView(viewsets.ModelViewSet):
-#     queryset = CustomUser.objects.all()
-#     serializer_class = ForgotPasswordSerializer
-#     permission_classes = [permissions.AllowAny]
-#     def post(self, request):
-#         serializer = ForgotPasswordSerializer(data=request.data)
-#         if serializer.is_valid():
-#             email = serializer.validated_data['email_address']
-#             try:
-#                 user = CustomUser.objects.get(email_address=email)
-#                 new_password = CustomUser.objects.make_random_password()
-#                 user.set_password(new_password)
-#                 user.save(update_fields=['password'])
-#                 send_mail(
-#                     'Your new password',
-#                     f'Your new password is: {new_password}',
-#                     'admin@marapolsa.com',
-#                     [email],
-#                 )
-#                 return Response({"message": "New password sent to your email"}, status=status.HTTP_200_OK)
-#             except CustomUser.DoesNotExist:
-#                 return Response({"error": "Email not found"}, status=status.HTTP_400_BAD_REQUEST)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-# class ChangePasswordView(viewsets.ModelViewSet):
-#     serializer_class = ChangePasswordSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-#     queryset = CustomUser.objects.all() 
-
-#     def post(self, request):
-#         user = request.user
-#         old_password = request.data.get('old_password')
-#         new_password = request.data.get('new_password')
-#         confirm_password = request.data.get('confirm_password')
-
-#         if not user.check_password(old_password):
-#             return Response({"error": "Old password is incorrect"}, status=status.HTTP_400_BAD_REQUEST)
-
-#         if new_password != confirm_password:
-#             return Response({"error": "New passwords do not match"}, status=status.HTTP_400_BAD_REQUEST)
-
-#         user.set_password(new_password)
-#         user.save()
-#         return Response({"message": "Password changed successfully"}, status=status.HTTP_200_OK)
-    
-# class ForgotPasswordView(viewsets.ModelViewSet):
-#     # queryset = CustomUser.objects.all()
-#     serializer_class = ForgotPasswordSerializer
-#     permission_classes = [permissions.AllowAny]
-
-#     def post(self, request):
-#         serializer = ForgotPasswordSerializer(data=request.data)
-#         if serializer.is_valid():
-#             email = request.data.get('email_address')
-#             try:
-#                 user = CustomUser.objects.get(email=email)
-#                 print(f"User found: {user.username}")
-#                 new_password = CustomUser.objects.make_random_password()
-#                 user.set_password(new_password)
-#                 user.save(update_fields=['password'])
-#                 send_mail(
-#                     'Your new password',
-#                     f'Your new password is: {new_password}',
-#                     'admin@marapolsa.com',
-#                     [email],
-#                 )
-#                 return Response({"message": "New password sent to your email"}, status=status.HTTP_200_OK)
-#             except CustomUser.DoesNotExist:
-#                 return Response({"error": "Email not found"}, status=status.HTTP_400_BAD_REQUEST)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 class ForgotPasswordView(APIView):
     queryset = CustomUser.objects.all()
     serializer_class = ForgotPasswordSerializer
     permission_classes = [permissions.AllowAny]
 
-
     def post(self, request):
         email = request.data.get('email_address')
         users = CustomUser.objects.filter(email_address=email)
         if users.exists():
                 user = users.first()
-                new_password = 'AAAAAAADSSDS' #TODO: this is where your random password generator function is called.
+                new_password = generate_random_password() 
                 try:
-                    # added a try except block because, most times the sending email of django sometimes fails and we wouldn't want to encounter any errors in production
                     send_mail(
-                    'Your new password',
-                        f'Your new password is: {new_password}',
+                        'Password Reset for Marapolsa Movies',
+                        f'Dear {user.username},\n\n'
+                        'We have received a request to reset your password for Marapolsa Movies.\n\n'
+                        f'Your new password is: {new_password}\n\n'
+                        'Please use this password to log in to your account. We recommend that you change your password to something more secure as soon as possible.\n\n'
+                        'If you have any questions or concerns, please contact us at support@marapolsa.com.\n\n'
+                        'Best regards,\n'
+                        'The Marapolsa Movies Team',
                         'admin@marapolsa.com',
                         [email],
                     )
@@ -762,17 +633,5 @@ class CustomTokenRefreshView(TokenRefreshView):
 
         return response
     
-# class CustomPasswordResetView(generics.GenericAPIView):
-#     serializer_class = CustomPasswordResetSerializer
-#     permission_classes = [permissions.AllowAny] 
-
-#     def post(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-        
-#         # Save method will generate the token and trigger the email via signal
-#         token = serializer.save()
-
-#         return Response({"message": "Password reset link sent to your email."}, status=status.HTTP_200_OK)
     
 
