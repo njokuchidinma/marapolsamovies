@@ -301,7 +301,8 @@ Welcome to the Marapolsa Movies API! This API is designed for managing and inter
         {
             "title": "Review Title",
             "content": "Review content here...",
-            "rating": 4.5
+            "director": "director.."
+            "cast": "cast.."
         }
 
     Response:
@@ -320,7 +321,8 @@ Welcome to the Marapolsa Movies API! This API is designed for managing and inter
             "id": 1,
             "title": "Great Movie",
             "content": "Movie",
-            "review": "This movie was fantastic!",
+            "director": "director.."
+            "cast": "cast.."
             "publisher": "admin",
             "timestamp": "2024-08-14T09:45:23Z"
             },
