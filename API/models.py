@@ -123,7 +123,7 @@ class Comment(models.Model):
         return f"Comment by {self.user.username} on {self.content_object}"
 
 class News(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, null=True)
     image = models.ImageField(upload_to='news_images/', null=True)
     content = models.TextField(null=True)
     publisher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -132,7 +132,7 @@ class News(models.Model):
     saved_by_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='saved_news_items', blank=True)
 
 class Award(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, null=True)
     image = models.ImageField(upload_to='awards_images/', null=True)
     content = models.TextField(null=True)
     publisher = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -150,7 +150,7 @@ class StreamingPlatform(models.Model):
     name = models.CharField(max_length=255)
 
 class Review(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, null=True)
     content = models.CharField(max_length=30, choices=CONTENT, null=True) 
     genre = models.ForeignKey(Genre, on_delete=models.CASCADE, null=True)
     industry = models.ForeignKey(Industry, on_delete=models.CASCADE, null=True)
@@ -170,7 +170,7 @@ class Review(models.Model):
     saved_by_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='saved_reviews_items', blank=True)
 
 class Movie(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, null=True)
     brief_description = models.TextField(null=True)
     director = models.CharField(max_length=255, null=True)
     producer = models.CharField(max_length=255, null=True)
