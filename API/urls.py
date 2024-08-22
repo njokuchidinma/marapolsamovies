@@ -2,7 +2,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework import routers
-from .views import ToggleLike, ToggleSave, AddComment, AllUsersView, UserDashboard, ReviewDataHandler, UserProfile, UserRegistration, CommentDataHandler, MovieDataHandler, NewsDataHandler, AwardDataHandler, GenreDataHandler, IndustryDataHandler, StreamingPlatformDataHandler, MostPopularReviewsView, SuggestedReviewsView, TVShowReviewListView, UserCommentsView, TrendingReviewsView, LoginView, LogoutView, ChangePassword, SubscribeNewsletterView, CustomTokenRefreshView, ForgotPasswordView
+from .views import ToggleLike, ToggleSave, AddComment, AllUsersView, UserDashboard, ReviewDataHandler, UserProfile, UserRegistration, CommentDataHandler, MovieDataHandler, NewsDataHandler, AwardDataHandler, GenreDataHandler, IndustryDataHandler, StreamingPlatformDataHandler, MostPopularReviewsView, SuggestedReviewsView, TVShowReviewListView, UserCommentsView, TrendingReviewsView, LoginView, LogoutView, ChangePassword, SubscribeNewsletterView, CustomTokenRefreshView, ForgotPasswordView, MovieReviewListView, TVShowReviewListView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -55,6 +55,7 @@ urlpatterns = [
     path('suggested-reviews/<uuid:review_id>/', SuggestedReviewsView.as_view(), name='suggested_reviews'),
     path('user-comments/<str:content_type>/<int:object_id>/', UserCommentsView.as_view(), name='user_comments'),
     path('trending-reviews/', TrendingReviewsView.as_view(), name='trending_reviews'),
+    path('movie-reviews/', MovieReviewListView.as_view(), name='trending_reviews'),
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
