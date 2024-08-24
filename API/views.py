@@ -37,7 +37,8 @@ class LoginView(APIView):
             return Response({
                 "id": str(user.id),
                 "username": user.username,
-                "profile_pic": request.build_absolute_uri(user.profile_picture) if user.profile_picture else None,
+                # "profile_pic": request.build_absolute_uri(user.profile_picture) if user.profile_picture else None,
+                "profile_pic": user.profile_picture.url,
                 "refresh": str(refresh),
                 "access": str(refresh.access_token)
             }, status=status.HTTP_200_OK)
@@ -472,6 +473,7 @@ class StreamingPlatformDataHandler(viewsets.ModelViewSet):
 
 class MostPopularReviewsView(APIView):
     pagination_class = LimitOffsetPagination
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         two_months_ago = timezone.now() - timedelta(days=60)
@@ -485,6 +487,7 @@ class MostPopularReviewsView(APIView):
     
 class SuggestedReviewsView(APIView):
     pagination_class = LimitOffsetPagination
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request, review_id):
         review = get_object_or_404(Review, id=review_id)
@@ -498,6 +501,7 @@ class SuggestedReviewsView(APIView):
     
 class TrendingReviewsView(APIView):
     pagination_class = LimitOffsetPagination
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         two_days_ago = timezone.now() - timedelta(days=2)
@@ -511,6 +515,7 @@ class TrendingReviewsView(APIView):
     
 class MovieReviewListView(APIView):
     pagination_class = LimitOffsetPagination
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         movie_reviews = Review.objects.filter(content='MOVIE')
@@ -521,6 +526,7 @@ class MovieReviewListView(APIView):
     
 class TVShowReviewListView(APIView):
     pagination_class = LimitOffsetPagination
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         tv_show_reviews = Review.objects.filter(content='TV_SHOW')
@@ -532,6 +538,7 @@ class TVShowReviewListView(APIView):
 class SubscribeNewsletterView(viewsets.ModelViewSet):
     queryset = NewsletterSubscription.objects.all()
     serializer_class = NewsletterSubscriptionSerializer
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         serializer = NewsletterSubscriptionSerializer(data=request.data)
