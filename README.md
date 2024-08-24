@@ -187,7 +187,7 @@ Welcome to the Marapolsa Movies API! This API is designed for managing and inter
             }
 
     iii. List All Users
-        GET /api/v1/users/
+        GET /api/v1/all-users/
             Lists all users or retrieves the current authenticated user's profile information.
         Response:
             {

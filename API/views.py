@@ -37,7 +37,8 @@ class LoginView(APIView):
             return Response({
                 "id": str(user.id),
                 "username": user.username,
-                "profile_pic": request.build_absolute_uri(user.profile_picture) if user.profile_picture else None,
+                # "profile_pic": request.build_absolute_uri(user.profile_picture) if user.profile_picture else None,
+                "profile_pic": user.profile_picture.url,
                 "refresh": str(refresh),
                 "access": str(refresh.access_token)
             }, status=status.HTTP_200_OK)
